@@ -15,7 +15,7 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT,
                 current REAL,
-                voltage REAL,   
+                voltage REAL,
                 power REAL,
                 status TEXT
             )
@@ -32,6 +32,11 @@ live_data = {
     "timestamp": "--:--:--"
 }
 
+# New global list to hold temporary notifications
+notifications = []
+# Tracks the last status to prevent spamming notifications
+last_known_status = "INITIALIZING" 
+
 # --- 2. ROUTE: DASHBOARD ---
 @app.route('/')
 def home():
@@ -41,12 +46,16 @@ def home():
 @app.route('/update_sensor', methods=['POST'])
 def update_sensor():
     global live_data
+    global notifications
+    global last_known_status
+    
     try:
         data = request.get_json()
         
         # A. Extract Data
         current = float(data.get('current', 0.0))
-        status = str(data.get('status', 'Unknown'))
+        # Status now comes from ESP32, e.g., "IDLE", "ACTIVE", "CUTOFF"
+        current_status = str(data.get('status', 'Unknown')).split(" ")[0] # Use only the first word (IDLE, CUTOFF, etc.)
         
         # B. Derived Calculations
         voltage = 220.0 # Fixed standard voltage
@@ -54,33 +63,54 @@ def update_sensor():
         timestamp_full = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         timestamp_time = datetime.now().strftime("%H:%M:%S")
 
-        # C. Update Live View (Memory)
+        # C. NOTIFICATION LOGIC (NEW)
+        if current_status == "IDLE" and last_known_status != "IDLE":
+            notifications.append({"type": "info", "message": "Appliance detected as IDLE. Monitoring power draw."})
+        elif current_status == "CUTOFF" and last_known_status != "CUTOFF":
+            notifications.append({"type": "danger", "message": "EMERGENCY CUTOFF: Circuit has been safely broken!"})
+        
+        # Update last known status for the next check
+        last_known_status = current_status
+
+        # D. Update Live View (Memory)
         live_data = {
             "current": current,
-            "status": status,
+            "status": data.get('status', 'Unknown'), # Use full status string from ESP32
             "timestamp": timestamp_time
         }
 
-        # D. Save to Database (Disk)
+        # E. Save to Database (Disk)
         with sqlite3.connect(DB_NAME) as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO readings (timestamp, current, voltage, power, status)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (timestamp_full, current, voltage, power, status))
+            ''', (timestamp_full, current, voltage, power, data.get('status', 'Unknown')))
             conn.commit()
 
-        print(f"[{timestamp_time}] Logged: {current}A | {power}W | {status}")
+        print(f"[{timestamp_time}] Logged: {current}A | {power}W | {data.get('status', 'Unknown')}")
         return jsonify({"message": "Data Logged Successfully"}), 200
 
     except Exception as e:
         print(f"Error processing data: {e}")
         return jsonify({"message": "Error"}), 400
 
-# --- 4. ROUTE: SEND LIVE DATA TO FRONTEND (GET) ---
+# --- 4. ROUTE: SEND LIVE DATA & NOTIFICATIONS TO FRONTEND (GET) ---
 @app.route('/get_live_data', methods=['GET'])
 def get_live_data():
-    return jsonify(live_data)
+    global live_data
+    global notifications
+    
+    # Package live data and pending notifications
+    response_data = {
+        "live_data": live_data,
+        "notifications": notifications
+    }
+    
+    # Clear notifications after sending them once
+    notifications = []
+    
+    return jsonify(response_data)
 
 # --- 5. ROUTE: SEND GRAPH HISTORY TO FRONTEND (GET) ---
 @app.route('/get_history', methods=['GET'])

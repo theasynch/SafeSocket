@@ -1,4 +1,5 @@
-body { 
+        /* --- DARK THEME STYLING --- */
+        body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background-color: #1a1a2e; 
             color: white; 
@@ -51,3 +52,29 @@ body {
 
         /* Chart Canvas */
         canvas { max-height: 350px; width: 100%; }
+
+        /* --- NOTIFICATION STYLES (NEW) --- */
+        #notification-area {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            width: 300px;
+        }
+        .notification {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: left;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .notification.info { background-color: #3498db; }
+        .notification.danger { background-color: #e74c3c; font-weight: bold; }
+        .notification.success { background-color: #2ecc71; }
