@@ -1,8 +1,6 @@
 # ⚡ SafeSocket: The Intelligent Fire Prevention System
 
 <div align="center">
-<img src="assets/dashboard_preview.png" alt="SafeSocket Dashboard" width="600"/>
-
 <i>Real-time power monitoring and safety analytics dashboard.</i>
 </div>
 
