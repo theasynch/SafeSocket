@@ -51,7 +51,7 @@ SafeSocket uses a full-stack IoT design with edge processing + backend + dashboa
 The ESP32 collects sensor data, makes safety decisions locally, and syncs with the Python backend for logging.
 
 <div align="center">
-<img src="assets/data_flow.jpg" alt="High Level Data Flow" width="700"/>
+<img src="assets/Software Block Diagram.jpg" alt="High Level Data Flow" width="700"/>
 </div>
 
 ---
@@ -61,7 +61,7 @@ The ESP32 collects sensor data, makes safety decisions locally, and syncs with t
 ACS712 measures current → Relay performs cutoff → ESP32 handles logic + communication.
 
 <div align="center">
-<img src="assets/hardware_block_diagram.jpg" alt="Hardware Block Diagram" width="700"/>
+<img src="assets/system_block_diagram.jpg" alt="Hardware Block Diagram" width="700"/>
 </div>
 
 ---
@@ -75,7 +75,7 @@ The system consists of:
 - **Dashboard:** Real-time visual monitoring  
 
 <div align="center">
-<img src="assets/system_architecture.jpg" alt="Detailed System Architecture" width="800"/>
+<img src="assets/System Architechture.jpg" alt="Detailed System Architecture" width="800"/>
 </div>
 
 ---
